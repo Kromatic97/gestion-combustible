@@ -6,7 +6,7 @@ Aplicación web para registrar, controlar y visualizar abastecimientos de combus
 
 ## 📸 Captura de pantalla
 
-![Captura](./frontend/public/captura.png) <!-- Guardá tu screenshot como 'captura.png' en /frontend/public -->
+![Captura](./frontend/public/Captura.png) <!-- Guardá tu screenshot como 'captura.png' en /frontend/public -->
 
 ---
 
