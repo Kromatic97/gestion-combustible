@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import AbastecimientoForm from './components/AbastecimientoForm';
 import ChoferForm from './components/ChoferForm';
 import VehiculoForm from './components/VehiculoForm';
+import RecargaStockForm from './components/RecargaStockForm';
+import HistorialRecargas from './components/HistorialRecargas';
 
 function App() {
   const abastecimientoFormRef = useRef();
@@ -27,6 +29,8 @@ function App() {
             <Link to="/" className="text-blue-700 hover:underline">Abastecimiento</Link>
             <Link to="/vehiculo" className="text-blue-700 hover:underline">Registrar Vehículo</Link>
             <Link to="/chofer" className="text-blue-700 hover:underline">Registrar Chofer</Link>
+            <Link to="/recarga-stock" className="text-purple-700 hover:underline">Recargar Stock</Link>
+            <Link to="/recargas" className="text-blue-700 hover:underline">Historial Recargas</Link>
           </nav>
 
           <Routes>
@@ -41,6 +45,8 @@ function App() {
             />
             <Route path="/vehiculo" element={<VehiculoForm />} />
             <Route path="/chofer" element={<ChoferForm />} />
+            <Route path="/recarga-stock" element={<RecargaStockForm />} />
+            <Route path="/recargas" element={<HistorialRecargas />} />
           </Routes>
         </div>
       </div>

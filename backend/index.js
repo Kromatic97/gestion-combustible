@@ -88,7 +88,48 @@ app.post('/api/abastecimientos', async (req, res) => {
 });
 
 /* ============================
-   2. Obtener Stock Actual
+   2. Registrar una Recarga
+=============================== */
+app.post('/api/recarga-stock', async (req, res) => {
+  try {
+    const { CantLitros, ChoferID } = req.body;
+    const fechaActual = new Date();
+
+    if (!CantLitros || !ChoferID) {
+      return res.status(400).json({ error: 'Faltan datos requeridos' });
+    }
+
+    // Insertar en RecargaStock
+    await pool.query(`
+      INSERT INTO RecargaStock (Fecha, CantLitros, ChoferID)
+      VALUES ($1, $2, $3)
+    `, [fechaActual, CantLitros, ChoferID]);
+
+    // Obtener stock actual
+    const result = await pool.query(`
+      SELECT LitroActual FROM StockCombustible
+      ORDER BY FechaTransaccion DESC LIMIT 1
+    `);
+    const stockActual = Number(result.rows[0]?.litroactual ?? 10000);
+
+    // Calcular nuevo stock
+    const nuevoStock = stockActual + Number(CantLitros);
+
+    // Insertar nuevo stock
+    await pool.query(`
+      INSERT INTO StockCombustible (FechaTransaccion, LitroActual)
+      VALUES ($1, $2)
+    `, [fechaActual, nuevoStock]);
+
+    res.json({ mensaje: '✅ Recarga realizada correctamente', nuevoStock });
+  } catch (error) {
+    console.error('Error al registrar recarga:', error);
+    res.status(500).json({ error: 'Error al registrar recarga de stock' });
+  }
+});
+
+/* ============================
+   3. Obtener Stock Actual
 =============================== */
 app.get('/api/stock', async (req, res) => {
   try {
@@ -109,7 +150,7 @@ app.get('/api/stock', async (req, res) => {
 });
 
 /* ============================
-   3. Obtener datos auxiliares
+   4. Obtener datos auxiliares
 =============================== */
 app.get('/api/vehiculos', async (req, res) => {
   try {
@@ -148,7 +189,7 @@ app.get('/api/lugares', async (req, res) => {
 });
 
 /* ============================
-   4. Registrar chofer y vehículo
+   5. Registrar chofer y vehículo
 =============================== */
 app.post('/api/choferes', async (req, res) => {
   try {
@@ -163,25 +204,28 @@ app.post('/api/choferes', async (req, res) => {
 
 app.post('/api/vehiculos', async (req, res) => {
   try {
-    const { Denominacion, Kilometraje, MarcaID, ModeloID, TipoVehiculoID } = req.body;
+    console.log('📦 Datos recibidos para registrar vehículo:', req.body);
+    const { denominacion, kilometraje, marcaid, modeloid, tipovehiculoid } = req.body;
+    
     await pool.query(
-      `INSERT INTO Vehiculo (Denominacion, Kilometraje, MarcaID, ModeloID, TipoVehiculoID)
+      `INSERT INTO Vehiculo (Denominacion, KilometrajeOdometro, MarcaID, ModeloID, TipoVehiculoID)
        VALUES ($1, $2, $3, $4, $5)`,
-      [Denominacion, Kilometraje, MarcaID, ModeloID, TipoVehiculoID]
+      [denominacion, kilometraje, marcaid, modeloid, tipovehiculoid]
     );
     res.status(201).json({ mensaje: 'Vehículo registrado correctamente' });
   } catch (error) {
-    console.error('Error al registrar vehículo:', error);
+    console.error('❌ Error al registrar vehículo:', error);
     res.status(500).json({ error: 'Error al registrar vehículo' });
   }
 });
 
+
 /* ============================
-   5. Datos auxiliares para vehículos
+   6. Datos auxiliares para vehículos
 =============================== */
 app.get('/api/marcas', async (req, res) => {
   try {
-    const result = await pool.query('SELECT MarcaID, NombreMarca FROM Marca');
+    const result = await pool.query('SELECT MarcaID, Descripcion FROM Marca');
     res.json(result.rows);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener marcas' });
@@ -207,7 +251,7 @@ app.get('/api/tiposvehiculo', async (req, res) => {
 });
 
 /* ============================
-   6. Abastecimientos recientes
+   7. Abastecimientos recientes
 =============================== */
 app.get('/api/abastecimientos', async (req, res) => {
   try {
@@ -234,7 +278,75 @@ app.get('/api/abastecimientos', async (req, res) => {
 });
 
 /* ============================
-   7. Iniciar servidor
+   8. Obtener Historial de Cargas
+=============================== */
+app.get('/api/recargas', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        r.recargaid AS RecargaStockID,
+        r.fecha AS Fecha,
+        r.cantlitros AS Litros,
+        c.nombre AS Chofer
+      FROM recargastock r
+      JOIN chofer c ON r.choferid = c.choferid
+      ORDER BY r.fecha DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener historial de recargas:', error);
+    res.status(500).json({ error: 'Error al obtener historial de recargas' });
+  }
+});
+
+/* =========================================
+   10. Obtener Historial de Saldos de Cargas
+========================================== */
+app.get('/api/historial-stock', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        Fecha AS fechatransaccion,
+        'Recarga' AS tipo,
+        '' AS vehiculo,
+        0 AS kilometraje,
+        c.Nombre AS chofer,
+        r.CantLitros AS litrosentrada,
+        0 AS litrossalida
+      FROM RecargaStock r
+      JOIN Chofer c ON r.ChoferID = c.ChoferID
+
+      UNION ALL
+
+      SELECT 
+        a.Fecha AS fechatransaccion,
+        'Abastecimiento' AS tipo,
+        v.Denominacion AS vehiculo,
+        a.KilometrajeActual AS kilometraje,
+        c.Nombre AS chofer,
+        0 AS litrosentrada,
+        a.Cant_Litros AS litrossalida
+      FROM Abastecimiento a
+      JOIN Vehiculo v ON a.VehiculoID = v.VehiculoID
+      JOIN Chofer c ON a.ChoferID = c.ChoferID
+
+      ORDER BY fechatransaccion
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener historial de stock:', error);
+    res.status(500).json({ error: 'Error al obtener historial de stock' });
+  }
+});
+
+
+
+
+
+
+/* ============================
+   10. Iniciar servidor
 =============================== */
 app.listen(3000, () => {
   console.log('✅ Servidor corriendo en http://localhost:3000');

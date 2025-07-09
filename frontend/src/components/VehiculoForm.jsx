@@ -10,11 +10,11 @@ const VehiculoForm = () => {
   const navigate = useNavigate();
 
   const [formulario, setFormulario] = useState({
-    Denominacion: '',
-    Kilometraje: '',
-    MarcaID: '',
-    ModeloID: '',
-    TipoVehiculoID: ''
+    denominacion: '',
+    kilometraje: '',
+    marcaid: '',
+    modeloid: '',
+    tipovehiculoid: ''
   });
 
   useEffect(() => {
@@ -44,15 +44,15 @@ const VehiculoForm = () => {
       await axios.post('http://localhost:3000/api/vehiculos', formulario);
       setMensaje('✅ Vehículo registrado correctamente');
       setFormulario({
-        Denominacion: '',
-        Kilometraje: '',
-        MarcaID: '',
-        ModeloID: '',
-        TipoVehiculoID: ''
+        denominacion: '',
+        kilometraje: '',
+        marcaid: '',
+        modeloid: '',
+        tipovehiculoid: ''
       });
       setTimeout(() => navigate('/'), 1000);
     } catch (error) {
-      console.error('Error registrando vehículo:', error);
+      console.error('❌ Error registrando vehículo:', error);
       setMensaje('❌ Error al registrar el vehículo');
     }
   };
@@ -63,40 +63,78 @@ const VehiculoForm = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block font-semibold">Denominación:</label>
-          <input type="text" name="Denominacion" value={formulario.Denominacion} onChange={handleChange} required className="w-full border p-2 rounded" />
+          <input
+            type="text"
+            name="denominacion"
+            value={formulario.denominacion}
+            onChange={handleChange}
+            required
+            className="w-full border p-2 rounded"
+          />
         </div>
 
         <div>
           <label className="block font-semibold">Kilometraje Odómetro:</label>
-          <input type="number" name="Kilometraje" value={formulario.Kilometraje} onChange={handleChange} required className="w-full border p-2 rounded" />
+          <input
+            type="number"
+            name="kilometraje"
+            value={formulario.kilometraje}
+            onChange={handleChange}
+            required
+            className="w-full border p-2 rounded"
+          />
         </div>
 
         <div>
           <label className="block font-semibold">Marca:</label>
-          <select name="MarcaID" value={formulario.MarcaID} onChange={handleChange} required className="w-full border p-2 rounded">
+          <select
+            name="marcaid"
+            value={formulario.marcaid}
+            onChange={handleChange}
+            required
+            className="w-full border p-2 rounded"
+          >
             <option value="">Seleccionar marca</option>
             {marcas.map(m => (
-              <option key={m.marcaid} value={m.marcaid}>{m.nombremarca || m.descripcion}</option>
+              <option key={m.marcaid} value={m.marcaid}>
+                {m.nombremarca || m.descripcion}
+              </option>
             ))}
           </select>
         </div>
 
         <div>
           <label className="block font-semibold">Modelo:</label>
-          <select name="ModeloID" value={formulario.ModeloID} onChange={handleChange} required className="w-full border p-2 rounded">
+          <select
+            name="modeloid"
+            value={formulario.modeloid}
+            onChange={handleChange}
+            required
+            className="w-full border p-2 rounded"
+          >
             <option value="">Seleccionar modelo</option>
             {modelos.map(m => (
-              <option key={m.modeloid} value={m.modeloid}>{m.nombremodelo}</option>
+              <option key={m.modeloid} value={m.modeloid}>
+                {m.nombremodelo}
+              </option>
             ))}
           </select>
         </div>
 
         <div>
           <label className="block font-semibold">Tipo de Vehículo:</label>
-          <select name="TipoVehiculoID" value={formulario.TipoVehiculoID} onChange={handleChange} required className="w-full border p-2 rounded">
+          <select
+            name="tipovehiculoid"
+            value={formulario.tipovehiculoid}
+            onChange={handleChange}
+            required
+            className="w-full border p-2 rounded"
+          >
             <option value="">Seleccionar tipo</option>
             {tipos.map(t => (
-              <option key={t.tipovehiculoid} value={t.tipovehiculoid}>{t.nombretipo || t.tipovehiculo}</option>
+              <option key={t.tipovehiculoid} value={t.tipovehiculoid}>
+                {t.nombretipo || t.tipovehiculo}
+              </option>
             ))}
           </select>
         </div>
@@ -112,6 +150,8 @@ const VehiculoForm = () => {
 };
 
 export default VehiculoForm;
+
+
 
 
 
