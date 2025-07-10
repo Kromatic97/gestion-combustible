@@ -110,7 +110,8 @@ app.post('/api/recarga-stock', async (req, res) => {
       SELECT LitroActual FROM StockCombustible
       ORDER BY FechaTransaccion DESC LIMIT 1
     `);
-    const stockActual = Number(result.rows[0]?.litroactual ?? 10000);
+
+    const stockActual = result.rowCount > 0 ? Number(result.rows[0].litroactual) : 0;
 
     // Calcular nuevo stock
     const nuevoStock = stockActual + Number(CantLitros);
@@ -128,6 +129,7 @@ app.post('/api/recarga-stock', async (req, res) => {
   }
 });
 
+
 /* ============================
    3. Obtener Stock Actual
 =============================== */
@@ -139,8 +141,8 @@ app.get('/api/stock', async (req, res) => {
       ORDER BY FechaTransaccion DESC
       LIMIT 1
     `);
-    const litroRaw = result.rows[0]?.litroactual ?? 10000;
-    const litroActual = isNaN(Number(litroRaw)) ? 10000 : Number(litroRaw);
+    const litroRaw = result.rows[0]?.litroactual ?? 0;
+    const litroActual = isNaN(Number(litroRaw)) ? 0 : Number(litroRaw);
 
     res.json({ litroactual: litroActual });
   } catch (err) {
@@ -340,13 +342,49 @@ app.get('/api/historial-stock', async (req, res) => {
   }
 });
 
+/* ============================
+   12.  Obtener abastecimientos por rango de fechas
+=============================== */
+
+app.get('/api/abastecimientos-rango', async (req, res) => {
+  const { desde, hasta } = req.query;
+
+  if (!desde || !hasta) {
+    return res.status(400).json({ error: 'Debe proporcionar fechas "desde" y "hasta"' });
+  }
+
+  try {
+    const result = await pool.query(`
+      SELECT 
+        a.AbastecimientoID,
+        a.Fecha,
+        v.Denominacion AS Vehiculo,
+        a.KilometrajeActual,
+        a.Cant_Litros,
+        l.NombreLugar AS Lugar,
+        c.Nombre AS Chofer
+      FROM Abastecimiento a
+      JOIN Vehiculo v ON a.VehiculoID = v.VehiculoID
+      JOIN Lugar l ON a.LugarID = l.LugarID
+      JOIN Chofer c ON a.ChoferID = c.ChoferID
+      WHERE a.Fecha BETWEEN $1 AND ($2::date + interval '1 day' - interval '1 second')
+      ORDER BY a.Fecha
+    `, [desde, hasta]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener abastecimientos por rango:', error);
+    res.status(500).json({ error: 'Error al obtener abastecimientos por rango' });
+  }
+});
+
 
 
 
 
 
 /* ============================
-   10. Iniciar servidor
+   12. Iniciar servidor
 =============================== */
 app.listen(3000, () => {
   console.log('✅ Servidor corriendo en http://localhost:3000');

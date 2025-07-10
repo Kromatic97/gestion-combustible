@@ -20,7 +20,8 @@ const AbastecimientoForm = forwardRef(({ onAbastecimientoRegistrado }, ref) => {
 
   useImperativeHandle(ref, () => ({
     cargarVehiculos,
-    cargarChoferes
+    cargarChoferes,
+    cargarStock,
   }));
 
   useEffect(() => {

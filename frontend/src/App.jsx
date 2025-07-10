@@ -5,6 +5,7 @@ import ChoferForm from './components/ChoferForm';
 import VehiculoForm from './components/VehiculoForm';
 import RecargaStockForm from './components/RecargaStockForm';
 import HistorialRecargas from './components/HistorialRecargas';
+import HistorialAbastecimientos from './components/HistorialAbastecimientos'; // ✅ Importar
 
 function App() {
   const abastecimientoFormRef = useRef();
@@ -24,29 +25,27 @@ function App() {
             Sistema de Gestión de Abastecimiento
           </h1>
 
-          {/* Navegación opcional (puede ser reemplazada por botones dentro de cada formulario) */}
           <nav className="flex justify-center gap-6 mb-8">
             <Link to="/" className="text-blue-700 hover:underline">Abastecimiento</Link>
             <Link to="/vehiculo" className="text-blue-700 hover:underline">Registrar Vehículo</Link>
             <Link to="/chofer" className="text-blue-700 hover:underline">Registrar Chofer</Link>
             <Link to="/recarga-stock" className="text-purple-700 hover:underline">Recargar Stock</Link>
             <Link to="/recargas" className="text-blue-700 hover:underline">Historial Recargas</Link>
+            <Link to="/historial-abastecimientos" className="text-blue-700 hover:underline">Historial por Fecha</Link> {/* ✅ Nuevo */}
           </nav>
 
           <Routes>
-            <Route
-              path="/"
-              element={
-                <AbastecimientoForm
-                  ref={abastecimientoFormRef}
-                  onAbastecimientoRegistrado={recargarAbastecimientos}
-                />
-              }
-            />
+            <Route path="/" element={
+              <AbastecimientoForm
+                ref={abastecimientoFormRef}
+                onAbastecimientoRegistrado={recargarAbastecimientos}
+              />
+            } />
             <Route path="/vehiculo" element={<VehiculoForm />} />
             <Route path="/chofer" element={<ChoferForm />} />
             <Route path="/recarga-stock" element={<RecargaStockForm />} />
             <Route path="/recargas" element={<HistorialRecargas />} />
+            <Route path="/historial-abastecimientos" element={<HistorialAbastecimientos />} /> {/* ✅ Nuevo */}
           </Routes>
         </div>
       </div>
@@ -55,6 +54,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
