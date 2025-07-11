@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -11,10 +12,10 @@ const pool = new Pool({
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  port: parseInt(process.env.DB_PORT || "5432"),
   ssl: {
-    rejectUnauthorized: false // Necesario para Railway
-  }
+    rejectUnauthorized: false, // importante para Railway
+  },
 });
 
 app.use(cors());
